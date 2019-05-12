@@ -19,6 +19,27 @@ def max_pool_2x2(x):
     return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
 
+def mnist_fc(x, num_classes, keep_prob):
+
+    weight1 = weight_variable([784, 64], 1)
+    bias1 = bias_variable([64], 1)
+    relu1 = tf.nn.dropout(tf.nn.relu(tf.matmul(x, weight1) + bias1), keep_prob)
+
+    weight2 = weight_variable([64, 64], 2)
+    bias2 = bias_variable([64], 2)
+    relu2 = tf.nn.dropout(tf.nn.relu(tf.matmul(relu1, weight2) + bias2), keep_prob)
+
+    weight3 = weight_variable([64, 64], 3)
+    bias3 = bias_variable([64], 3)
+    relu3 = tf.nn.dropout(tf.nn.relu(tf.matmul(relu2, weight3) + bias3), keep_prob)
+
+    weight4 = weight_variable([64, num_classes], 4)
+    bias4 = bias_variable([num_classes], 4)
+    output = tf.matmul(relu3, weight4) + bias4
+
+    return output
+
+
 def mnist_conv(x, num_classes, keep_prob):
 
     x_ = tf.reshape(x, [-1, 28, 28, 1])
