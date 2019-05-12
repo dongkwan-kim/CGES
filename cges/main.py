@@ -1,8 +1,12 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
-import utils
-from mnist_model import mnist_conv
 import os
+try:
+    from .mnist_model import mnist_conv
+    from .utils import comp, cost
+except ModuleNotFoundError:
+    from mnist_model import mnist_conv
+    from utils import comp, cost
 
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "3"
@@ -71,8 +75,8 @@ if FLAGS.cges:
 
     # Normalization parameter  
 
-    group_layerwise = utils.glayerwise
-    exclusive_layerwise = utils.elayerwise
+    group_layerwise = [1., 1.0, 1. / 15, 1. / 144]
+    exclusive_layerwise = [1., 0.5, 15., 144.]
 
     for var_idx, var in enumerate(S_vars):
 
@@ -114,7 +118,7 @@ for i in range(FLAGS.max_iter):
         print("step %d, lr %.4f, training accuracy %g"
               % (i + 1, sess.run(learning_rate), train_accuracy))
 
-        ratio_w, sp = utils.comp(S_vars)
+        ratio_w, sp = comp(S_vars)
         _sp = sess.run(sp)
 
         print("loss: %.4f sp: %0.4f %0.4f %0.4f %0.4f :: using param : %.4f"
@@ -133,7 +137,7 @@ for i in range(FLAGS.max_iter):
         print("test accuracy %0.4f" % test_acc)
 
         # Computing FLOP
-        flop = utils.cost(_sp)
+        flop = cost(_sp)
         print("FLOP : %.4f" % flop)
         if FLAGS.cges:
             print('CGES, lambda : %f, mu : %.2f, chvar : %.2f' % (lamb, mu, chvar))
