@@ -20,30 +20,28 @@ def max_pool_2x2(x):
 
 
 def mnist_conv(x, num_classes, keep_prob):
-    filter1 = weight_variable([5, 5, 1, 32], 1)
-    bias1 = bias_variable([32], 1)
 
     x_ = tf.reshape(x, [-1, 28, 28, 1])
 
+    filter1 = weight_variable([5, 5, 1, 32], 1)
+    bias1 = bias_variable([32], 1)
     relu1 = tf.nn.relu(conv2d(x_, filter1) + bias1)
     pool1 = max_pool_2x2(relu1)
 
     filter2 = weight_variable([5, 5, 32, 64], 2)
     bias2 = bias_variable([64], 2)
-
     relu2 = tf.nn.relu(conv2d(pool1, filter2) + bias2)
     pool2 = max_pool_2x2(relu2)
+    flat_pool2 = tf.reshape(pool2, [-1, 7 * 7 * 64])
 
     fc3 = weight_variable([7 * 7 * 64, 1024], 3)
     bias3 = bias_variable([1024], 3)
-
-    flat_pool2 = tf.reshape(pool2, [-1, 7 * 7 * 64])
     relu3 = tf.nn.relu(tf.matmul(flat_pool2, fc3) + bias3)
 
     drop = tf.nn.dropout(relu3, keep_prob)
 
-    fc4 = weight_variable([1024, 10], 4)
-    bias4 = bias_variable([10], 4)
+    fc4 = weight_variable([1024, num_classes], 4)
+    bias4 = bias_variable([num_classes], 4)
     output = tf.matmul(drop, fc4) + bias4
 
     return output

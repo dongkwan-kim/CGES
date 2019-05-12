@@ -5,7 +5,7 @@ glayerwise = [1., 1.0, 1. / 15, 1. / 144]
 elayerwise = [1., 0.5, 15., 144.]
 
 
-def _comp(all_vars):
+def comp(all_vars):
     weight_size = []
     sparsity = []
     total_sp = 0.
@@ -19,7 +19,7 @@ def _comp(all_vars):
     return (1. - total_sp), sparsity
 
 
-def _cost(sparsity):
+def cost(sparsity):
     full_cost = [(28 - 5 + 1) * (28 - 5 + 1) * (1 - 1 + 1) * 5 * 5 * 1 * 32.,
                  (14 - 5 + 1) * (14 - 5 + 1) * (32 - 32 + 1) * 5 * 5 * 32 * 64.,
                  7 * 7 * 64 * 1024, 1024 * 10]
