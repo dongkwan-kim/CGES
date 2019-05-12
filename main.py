@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 import numpy as np
 import utils
+from mnist_model import mnist_conv
 
 
 #######################
@@ -32,30 +33,30 @@ gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=FLAGS.memory_usage)
 sess = tf.InteractiveSession(config=tf.ConfigProto(gpu_options=gpu_options))
 
 mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
-x = tf.placeholder(tf.float32, shape=[None, 784]) # single flattened 28 * 28 pixel MNIST image
-y_ = tf.placeholder(tf.float32, shape=[None, 10]) # 10 classes output
+x = tf.placeholder(tf.float32, shape=[None, 784])  # single flattened 28 * 28 pixel MNIST image
+y_ = tf.placeholder(tf.float32, shape=[None, 10])  # 10 classes output
 keep_prob = tf.placeholder(tf.float32)
 
 W = tf.Variable(tf.zeros([784, 10]))
-b = tf.Variable(tf.zeros([10])) 
+b = tf.Variable(tf.zeros([10]))
 
 batch = tf.Variable(0, trainable=False)
 learning_rate = tf.train.exponential_decay(
-    FLAGS.base_lr,      # Base learning rate.
-    batch,              # Current index. 
-    FLAGS.stepsize,     # Decay iteration step. 
-    FLAGS.decay_rate,   # Decay rate. 
-    staircase=True)  
+    FLAGS.base_lr,  # Base learning rate.
+    batch,  # Current index.
+    FLAGS.stepsize,  # Decay iteration step.
+    FLAGS.decay_rate,  # Decay rate.
+    staircase=True)
 
-from mnist_model import mnist_conv
+
 y_conv = mnist_conv(x, 10, keep_prob)
 y_preds = tf.nn.softmax(y_conv)
 
 S_vars = [svar for svar in tf.trainable_variables() if 'weight' in svar.name]
-ff_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y_conv, labels=y_)) 
+ff_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y_conv, labels=y_))
 if not FLAGS.cges:
     ff_loss_reg = ff_loss + learning_rate * 0.01 * \
-                tf.reduce_sum([tf.nn.l2_loss(var) for var in S_vars])
+                  tf.reduce_sum([tf.nn.l2_loss(var) for var in S_vars])
 else:
     ff_loss_reg = ff_loss
 
@@ -73,7 +74,7 @@ if FLAGS.cges:
         gl_comp = 1. - g_param * glayerwise[vind] * tf.rsqrt(group_sum)
         gl_plus = tf.cast(gl_comp > 0, tf.float32) * gl_comp
         gl_stack = tf.stack([gl_plus for _ in range(var.get_shape()[-1])], -1)
-        gl_op = gl_stack * var 
+        gl_op = gl_stack * var
 
         # ES
         e_param = learning_rate * FLAGS.lamb * ((1. - FLAGS.mu) + vind * FLAGS.chvar)
@@ -96,32 +97,32 @@ for i in range(FLAGS.max_iter):
     batch = mnist.train.next_batch(100)
 
     # Display
-    if (i+1) % FLAGS.train_display == 0:
-        train_accuracy, tr_loss = sess.run([accuracy, ff_loss], \
-                        feed_dict={x: batch[0], y_: batch[1], keep_prob: 1.0})
-        print("step %d, lr %.4f, training accuracy %g" \
-                %(i+1, sess.run(learning_rate), train_accuracy))
+    if (i + 1) % FLAGS.train_display == 0:
+        train_accuracy, tr_loss = sess.run([accuracy, ff_loss],
+                                           feed_dict={x: batch[0], y_: batch[1], keep_prob: 1.0})
+        print("step %d, lr %.4f, training accuracy %g"
+              % (i + 1, sess.run(learning_rate), train_accuracy))
 
         ratio_w, sp = utils._comp(S_vars)
         _sp = sess.run(sp)
 
-        print("loss: %.4f sp: %0.4f %0.4f %0.4f %0.4f :: using param : %.4f" \
-            %(tr_loss, _sp[0], _sp[1], _sp[2], _sp[3], sess.run(ratio_w)))
-        
+        print("loss: %.4f sp: %0.4f %0.4f %0.4f %0.4f :: using param : %.4f"
+              % (tr_loss, _sp[0], _sp[1], _sp[2], _sp[3], sess.run(ratio_w)))
+
     # Training
-    opt.run(feed_dict={x: batch[0], y_: batch[1], keep_prob:0.5}) 
+    opt.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
     if FLAGS.cges:
         _ = sess.run(cges_op_list)
 
     # Testing
-    if (i+1) % FLAGS.test_iter == 0:
-        test_acc = sess.run(accuracy, feed_dict={x: mnist.test.images, \
-                        y_: mnist.test.labels, keep_prob: 1.0})
-        print("test accuracy %0.4f" %(test_acc))
- 
+    if (i + 1) % FLAGS.test_iter == 0:
+        test_acc = sess.run(accuracy, feed_dict={x: mnist.test.images,
+                                                 y_: mnist.test.labels, keep_prob: 1.0})
+        print("test accuracy %0.4f" % (test_acc))
+
         # Computing FLOP
         flop = utils._cost(_sp)
-        print("FLOP : %.4f" %(flop))
+        print("FLOP : %.4f" % (flop))
         if FLAGS.cges:
-            print('CGES, lambda : %f, mu : %.2f, chvar : %.2f' \
-                        %(FLAGS.lamb, FLAGS.mu, FLAGS.chvar))
+            print('CGES, lambda : %f, mu : %.2f, chvar : %.2f'
+                  % (FLAGS.lamb, FLAGS.mu, FLAGS.chvar))
