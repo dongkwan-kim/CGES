@@ -29,7 +29,15 @@ def get_sparsity_tensor_of_variable(variables: List[tf.Variable]) -> Tuple[tf.Te
     return total_sparsity, sparsity_list
 
 
-def get_sparsity_of_variable(sess: tf.Session, variables: List[tf.Variable]) -> Tuple[float, List[float]]:
+def get_sparsity_of_variable(sess: tf.Session,
+                             variables: List[tf.Variable] = None,
+                             variable_filter: Callable = None) -> Tuple[float, List[float]]:
+
+    assert not (variables is None and variable_filter is None)
+
+    if variable_filter is not None:
+        variables = [svar for svar in tf.trainable_variables() if variable_filter(svar.name)]
+
     total_sparsity_tensor, sparsity_tensor_list = get_sparsity_tensor_of_variable(variables)
     return sess.run(total_sparsity_tensor), sess.run(sparsity_tensor_list)
 
