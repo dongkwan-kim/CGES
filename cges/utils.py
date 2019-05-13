@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import warnings
 
 
 def comp(all_vars):
@@ -17,6 +18,7 @@ def comp(all_vars):
 
 
 def cost(sparsity):
+    warnings.warn("This is a hard corded function.")
     full_cost = [(28 - 5 + 1) * (28 - 5 + 1) * (1 - 1 + 1) * 5 * 5 * 1 * 32.,
                  (14 - 5 + 1) * (14 - 5 + 1) * (32 - 32 + 1) * 5 * 5 * 32 * 64.,
                  7 * 7 * 64 * 1024, 1024 * 10]

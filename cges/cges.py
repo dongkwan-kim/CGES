@@ -3,6 +3,37 @@ from typing import Tuple, Callable, List
 import tensorflow as tf
 
 
+def _f32(x):
+    return tf.cast(x, tf.float32)
+
+
+def get_sparsity_tensor_of_variable(variables: List[tf.Variable]) -> Tuple[tf.Tensor, List[tf.Tensor]]:
+
+    weight_size = []
+    sparsity_list = []
+
+    total_sparsity = 0.
+
+    for i in range(len(variables)):
+
+        num_parameters = tf.reduce_prod(tf.shape(variables[i]))
+        sparsity_of_layer = tf.reduce_mean(_f32(tf.equal(variables[i], 0.)))
+
+        weight_size.append(num_parameters)
+        sparsity_list.append(sparsity_of_layer)
+
+        total_sparsity = total_sparsity + _f32(num_parameters) * sparsity_of_layer
+
+    total_sparsity = total_sparsity / _f32(tf.reduce_sum(weight_size))
+
+    return total_sparsity, sparsity_list
+
+
+def get_sparsity_of_variable(sess: tf.Session, variables: List[tf.Variable]) -> Tuple[float, List[float]]:
+    total_sparsity_tensor, sparsity_tensor_list = get_sparsity_tensor_of_variable(variables)
+    return sess.run(total_sparsity_tensor), sess.run(sparsity_tensor_list)
+
+
 def cges(learning_rate: float,
          lamb: float,
          mu: float,
