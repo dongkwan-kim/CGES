@@ -22,8 +22,10 @@ def cges(learning_rate: float,
     """
     variable_filter = variable_filter or (lambda x: True)
     S_vars = [svar for svar in tf.trainable_variables() if variable_filter(svar.name)]
-    assert len(S_vars) == len(group_layerwise)
-    assert len(S_vars) == len(exclusive_layerwise)
+    assert len(S_vars) == len(group_layerwise), "len(S_vars): {} is not len(group_layerwise): {}".format(
+        len(S_vars), len(group_layerwise))
+    assert len(S_vars) == len(exclusive_layerwise), "len(S_vars): {} is not len(exclusive_layerwise): {}".format(
+        len(S_vars), len(exclusive_layerwise))
 
     op_list = []
     for var_idx, var in enumerate(S_vars):
