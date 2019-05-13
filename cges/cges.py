@@ -9,7 +9,7 @@ def cges(learning_rate: float,
          chvar: float,
          group_layerwise: List[float],
          exclusive_layerwise: List[float],
-         variable_filter: Callable = None) -> Tuple:
+         variable_filter: Callable = None) -> Tuple[tf.Operation, list]:
     """
     :param learning_rate: learning rate
     :param lamb: parameter that decides the entire regularization effect
@@ -48,4 +48,4 @@ def cges(learning_rate: float,
     with tf.control_dependencies(op_list):
         cges_op_list = tf.no_op()
 
-    return cges_op_list
+    return cges_op_list, op_list
